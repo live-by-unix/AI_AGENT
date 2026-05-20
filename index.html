@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>De Facto</title>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.6.3/dist/webllm.umd.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 html,body{height:100%;margin:0;padding:0;background:#121212;color:#f0f0f0;font-family:ui-sans-serif,system-ui,sans-serif}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#333;border-radius:3px}::-webkit-scrollbar-track{background:transparent}
@@ -25,9 +26,7 @@ html,body{height:100%;margin:0;padding:0;background:#121212;color:#f0f0f0;font-f
 <div id="status" class="h-6 mt-2 text-gray-400"></div>
 <div id="output" class="mt-6 flex flex-col gap-4"></div>
 </div>
-<script type="module">
-import { WebLLM } from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.6.3/dist/webllm.esm.js";
-
+<script>
 let llmInstance;
 const statusEl=document.getElementById("status");
 const outputEl=document.getElementById("output");
@@ -37,7 +36,7 @@ const activateBtn=document.getElementById("activateBtn");
 
 async function initLLM(model){
 statusEl.textContent="Initializing model...";
-llmInstance=new WebLLM({model});
+llmInstance=new window.WebLLM({model});
 await llmInstance.init({progress:(p)=>statusEl.textContent=`Loading model: ${Math.floor(p*100)}%`});
 statusEl.textContent="Model ready";
 }
