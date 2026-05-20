@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>De Facto</title>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.0/dist/jszip.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+html,body{height:100%;margin:0;padding:0;background:#121212;color:#f0f0f0;font-family:ui-sans-serif,system-ui,sans-serif}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#333;border-radius:3px}::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen p-8">
+<header class="mb-8 text-center">
+<h1 class="text-4xl font-semibold">De Facto</h1>
+<p class="text-gray-400 mt-1">Local AI Agent Generator</p>
+</header>
+<div class="w-full max-w-2xl flex flex-col gap-6">
+<select id="modelSelector" class="bg-gray-900 text-white border border-gray-700 rounded px-3 py-2">
+<option value="Qwen2.5-Coder-1.5B-Instruct-q4f16_1-1k">Qwen2.5-Coder-1.5B-Instruct-q4f16_1-1k</option>
+<option value="Qwen2.5-Coder-7B-Instruct-q4f16_1-1k">Qwen2.5-Coder-7B-Instruct-q4f16_1-1k</option>
+</select>
+<textarea id="promptInput" placeholder="Enter your prompt..." class="w-full h-40 bg-gray-900 border border-gray-700 rounded p-3 text-white resize-none text-lg"></textarea>
+<button id="activateBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded">Activate Agent</button>
+<div id="status" class="h-6 mt-2 text-gray-400"></div>
+<div id="output" class="mt-6 flex flex-col gap-4"></div>
+</div>
+<script type="module">
+import { WebLLM } from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.6.3/dist/webllm.esm.js";
+
+let llmInstance;
+const statusEl=document.getElementById("status");
+const outputEl=document.getElementById("output");
+const modelSelector=document.getElementById("modelSelector");
+const promptInput=document.getElementById("promptInput");
+const activateBtn=document.getElementById("activateBtn");
+
+async function initLLM(model){
+statusEl.textContent="Initializing model...";
+llmInstance=new WebLLM({model});
+await llmInstance.init({progress:(p)=>statusEl.textContent=`Loading model: ${Math.floor(p*100)}%`});
+statusEl.textContent="Model ready";
+}
+
+async function generateCode(prompt){
+statusEl.textContent="Generating agent...";
+const result=await llmInstance.predict(prompt);
+statusEl.textContent="Generation complete";
+return result;
+}
+
+function downloadZip(code){
+const zip=new JSZip();
+zip.file("README.md",`# Generated App\n\nThis application was generated using De Facto.\n\n## How to run\n\n1. Unzip the SRC folder\n2. Open index.html in a browser\n3. Deploy as needed`);
+zip.folder("SRC").file("index.html",code);
+zip.generateAsync({type:"blob"}).then(blob=>{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="generated_app.zip";a.click();});
+}
+
+activateBtn.addEventListener("click",async()=>{
+outputEl.innerHTML="";
+await initLLM(modelSelector.value);
+const code=await generateCode(promptInput.value);
+const dlBtn=document.createElement("button");
+dlBtn.textContent="Download ZIP";
+dlBtn.className="bg-green-600 hover:bg-green-500 text-white font-semibold px-6 py-3 rounded";
+dlBtn.onclick=()=>downloadZip(code);
+outputEl.appendChild(dlBtn);
+});
+</script>
+</body>
+</html>
