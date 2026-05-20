@@ -27,6 +27,11 @@ html,body{height:100%;margin:0;padding:0;background:#121212;color:#f0f0f0;font-f
 <div id="output" class="mt-6 flex flex-col gap-4"></div>
 </div>
 <script>
+const MODEL_URLS={
+"Qwen2.5-Coder-1.5B-Instruct-q4f16_1-1k":"https://huggingface.co/mlc-ai/qwen2.5-coder-1.5b/resolve/main/",
+"Qwen2.5-Coder-7B-Instruct-q4f16_1-1k":"https://huggingface.co/mlc-ai/qwen2.5-coder-7b/resolve/main/"
+};
+
 let llmInstance;
 const statusEl=document.getElementById("status");
 const outputEl=document.getElementById("output");
@@ -35,10 +40,13 @@ const promptInput=document.getElementById("promptInput");
 const activateBtn=document.getElementById("activateBtn");
 
 async function initLLM(model){
-statusEl.textContent="Initializing model...";
+statusEl.textContent="Downloading and caching model...";
 llmInstance=new window.WebLLM({model});
-await llmInstance.init({progress:(p)=>statusEl.textContent=`Loading model: ${Math.floor(p*100)}%`});
-statusEl.textContent="Model ready";
+await llmInstance.init({
+url: MODEL_URLS[model],
+progress:(p)=>statusEl.textContent=`Loading model: ${Math.floor(p*100)}%`
+});
+statusEl.textContent="Model ready locally";
 }
 
 async function generateCode(prompt){
@@ -52,12 +60,18 @@ function downloadZip(code){
 const zip=new JSZip();
 zip.file("README.md",`# Generated App\n\nThis application was generated using De Facto.\n\n## How to run\n\n1. Unzip the SRC folder\n2. Open index.html in a browser\n3. Deploy as needed`);
 zip.folder("SRC").file("index.html",code);
-zip.generateAsync({type:"blob"}).then(blob=>{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="generated_app.zip";a.click();});
+zip.generateAsync({type:"blob"}).then(blob=>{
+const a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="generated_app.zip";
+a.click();
+});
 }
 
 activateBtn.addEventListener("click",async()=>{
 outputEl.innerHTML="";
-await initLLM(modelSelector.value);
+const model=modelSelector.value;
+await initLLM(model);
 const code=await generateCode(promptInput.value);
 const dlBtn=document.createElement("button");
 dlBtn.textContent="Download ZIP";
