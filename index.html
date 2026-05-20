@@ -41,7 +41,7 @@ const activateBtn=document.getElementById("activateBtn");
 
 async function initLLM(model){
 statusEl.textContent="Downloading and caching model...";
-llmInstance=new window.WebLLM({model});
+llmInstance=new window.MLC.WebLLM({model});
 await llmInstance.init({
 url: MODEL_URLS[model],
 progress:(p)=>statusEl.textContent=`Loading model: ${Math.floor(p*100)}%`
